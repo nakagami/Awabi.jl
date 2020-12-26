@@ -1,0 +1,4 @@
+name = "Awabi"
+uuid = "b89ecf66-93e0-42cf-a85d-3fd691c1774b"
+authors = ["Hajime Nakagami <nakagami@gmail.com>"]
+version = "0.1.0"
