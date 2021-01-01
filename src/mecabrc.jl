@@ -31,7 +31,7 @@ function find_mecabrc()::Union{String, Nothing}
     Nothing
 end
 
-function get_mecabrc_map(rc_path)::Dict{String, String}
+function get_mecabrc_map(rc_path::String)::Dict{String, String}
     mecabrc_map = Dict()
     
     open(rc_path, "r") do f
