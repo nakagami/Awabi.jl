@@ -21,10 +21,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Awabi
 
-include("mecabrc.jl")
+function find_mecabrc()::Union{String, Nothing}
+    for s = ["/usr/local/etc/mecabrc", "/etc/mecabrc"]
+        if isfile(s)
+            return s
+        end
+    end
+    Nothing
+end
 
-greet() = print("Hello World!")
+function get_mecabrc_map(rc_path)::Dict{String, String}
+    mecabrc_map = Dict()
+    
+    open(rc_path, "r") do f
+        for s = readlines(f)
+            m = match(r"^(\S+)\s*=\s*(\S+)", s)
+            if m != nothing
+                mecabrc_map[m[1]] = m[2]
+            end
+        end
+    end
 
-end # module
+    mecabrc_map
+end
+
+function get_mecabrc_map()
+    get_mecabrc_map(find_mecabrc())
+end
