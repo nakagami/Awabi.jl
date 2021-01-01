@@ -21,11 +21,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Awabi
 
-include("mecabrc.jl")
-include("dic.jl")
+using Mmap
 
-greet() = print("Hello World!")
-
-end # module
+struct Matrix
+    mmap
+    lsize::UInt16
+    rsize::UInt16
+end
