@@ -26,7 +26,7 @@ using Mmap
 const MAX_GROUPING_SIZE = 24
 
 struct Matrix
-    mmap
+    mmap::Vector{Int16}
     lsize::UInt32
     rsize::UInt32
 end
