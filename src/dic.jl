@@ -26,6 +26,19 @@ using Mmap
 
 struct Matrix
     mmap
-    lsize::UInt16
-    rsize::UInt16
+    lsize::UInt32
+    rsize::UInt32
+end
+
+
+function get_matrix(path::String)::Matrix
+    f = open(path)
+    lsize = UInt32(read(f, UInt16))
+    rsize = UInt32(read(f, UInt16))
+    mmap = Mmap.mmap(f, Vector{Int16}, lsize * rsize)
+    Matrix(mmap, lsize, rsize)
+end
+
+function get_trans_cost(m::Matrix, id1::UInt16, id2::UInt16)::Int16
+    m.mmap[UInt32(id2) * m.lsize + UInt32(id1) + 1]
 end
