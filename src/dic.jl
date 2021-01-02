@@ -21,13 +21,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-
 using Mmap
+
+const MAX_GROUPING_SIZE = 24
 
 struct Matrix
     mmap
     lsize::UInt32
     rsize::UInt32
+end
+
+
+function char_to_ucs2(ch::Char)::UInt16
+    UInt16(UInt32(ch) & 0xFFFF)
 end
 
 
