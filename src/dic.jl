@@ -50,8 +50,43 @@ struct CharInfo
     invoke::UInt32
 end
 
-function char_to_ucs2(ch::Char)::UInt16
-    UInt16(UInt32(ch) & 0xFFFF)
+function utf8_to_ucs2(s::Vector{UInt8}, index::Int64)::Tuple{UInt16, Int64}
+    # utf8 to ucs2(16bit) code and it's array size
+    ln::Int64 = 0
+
+    if (s[index] & 0b10000000) == 0b00000000
+        ln = 1
+    elseif (s[index] & 0b11100000) == 0b11000000
+        ln = 2
+    elseif (s[index] & 0b11110000) == 0b11100000
+        ln = 3
+    elseif (s[index] & 0b11111000) == 0b11110000
+        ln = 4
+    end
+
+    if ln == 1
+        ch32 = UInt32(s[index+0])
+    elseif ln == 2
+        ch32 = UInt32(s[index+0] & 0x1F) << 6
+        ch32 |= s[index+1] & 0x3F
+    elseif ln == 3
+        ch32 = UInt32(s[index+0] & 0x0F) << 12
+        ch32 |= UInt32(s[index+1] & 0x3F) << 6
+        ch32 |= s[index+2] & 0x3F
+    elseif ln == 4
+        ch32 = UInt32(s[index+0] & 0x07) << 18
+        ch32 |= UInt32(s[index+1] & 0x3F) << 12
+        ch32 |= UInt32(s[index+2] & 0x3F) << 6
+        ch32 |= s[index+3] & 0x03F
+    end
+
+    # ucs4 to ucs2
+    if ch32 < 0x10000
+        ch16 = UInt16(ch32)
+    else
+        ch16 = UInt16((((ch32-0x10000) // 0x400 + 0xD800) << 8) + ((ch32-0x10000) % 0x400 + 0xDC00))
+    end
+    (ch16, ln)
 end
 
 function get_char_propery(path::AbstractString)::CharProperty
