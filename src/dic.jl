@@ -35,6 +35,7 @@ struct DicEntry
     skip::Bool
 end
 
+#------------------------------------------------------------------------------
 
 struct CharProperty
     mmap::Vector{UInt32}
@@ -45,6 +46,20 @@ function char_to_ucs2(ch::Char)::UInt16
     UInt16(UInt32(ch) & 0xFFFF)
 end
 
+function get_char_propery(path::AbstractString)::CharProperty
+    category_names = []
+    f = open(path)
+    num_categories = read(f, UInt32)
+    for i in 1:num_categories
+        raw_data = zeros(UInt8, 32)
+        readbytes!(f, raw_data, 32)
+        push!(category_names, String(raw_data[1:findfirst(x -> x==0, raw_data)-1]))
+    end
+    mmap = Mmap.mmap(f, Vector{UInt32}, 0xFFFF)
+    CharProperty(mmap, category_names)
+end
+
+#------------------------------------------------------------------------------
 
 struct MeCabDic
     mmap
@@ -56,6 +71,7 @@ struct MeCabDic
     feature_offset::UInt32
 end
 
+#------------------------------------------------------------------------------
 
 struct Matrix
     mmap::Vector{Int16}
@@ -63,8 +79,7 @@ struct Matrix
     rsize::UInt32
 end
 
-
-function get_matrix(path::String)::Matrix
+function get_matrix(path::AbstractString)::Matrix
     f = open(path)
     lsize = UInt32(read(f, UInt16))
     rsize = UInt32(read(f, UInt16))

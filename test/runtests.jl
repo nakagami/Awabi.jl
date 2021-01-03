@@ -15,4 +15,14 @@ end
     )
     @test Awabi.get_trans_cost(m, UInt16(555), UInt16(1283)) == 340
     @test Awabi.get_trans_cost(m, UInt16(10), UInt16(1293)) == -1376
+
+    # CharInfo
+    cp = Awabi.get_char_propery(
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "char.bin")
+    )
+    @test cp.category_names == [
+        "DEFAULT", "SPACE", "KANJI", "SYMBOL", "NUMERIC", "ALPHA",
+        "HIRAGANA", "KATAKANA", "KANJINUMERIC", "GREEK", "CYRILLIC"
+    ]
+
 end
