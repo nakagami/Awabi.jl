@@ -25,15 +25,42 @@ using Mmap
 
 const MAX_GROUPING_SIZE = 24
 
+struct DicEntry
+    original::String
+    lc_attr::UInt16
+    rc_attr::UInt16
+    posid::UInt16
+    wcost::Int16
+    feature::String
+    skip::Bool
+end
+
+
+struct CharProperty
+    mmap::Vector{UInt32}
+    category_names:: Vector{String}
+end
+
+function char_to_ucs2(ch::Char)::UInt16
+    UInt16(UInt32(ch) & 0xFFFF)
+end
+
+
+struct MeCabDic
+    mmap
+    dic_size::UInt32
+    lsize::UInt32
+    rsize::UInt32
+    da_offset::UInt32
+    token_offset::UInt32
+    feature_offset::UInt32
+end
+
+
 struct Matrix
     mmap::Vector{Int16}
     lsize::UInt32
     rsize::UInt32
-end
-
-
-function char_to_ucs2(ch::Char)::UInt16
-    UInt16(UInt32(ch) & 0xFFFF)
 end
 
 
