@@ -25,4 +25,12 @@ end
         "HIRAGANA", "KATAKANA", "KANJINUMERIC", "GREEK", "CYRILLIC"
     ]
 
+    @test Awabi.get_char_info(cp, UInt16(0)) == Awabi.CharInfo(0, 1, 0, 1, 0)         # DEFAULT
+    @test Awabi.get_char_info(cp, UInt16(0x20)) == Awabi.CharInfo(1, 2, 0, 1, 0)      # SPACE
+    @test Awabi.get_char_info(cp, UInt16(0x09)) == Awabi.CharInfo(1, 2, 0, 1, 0)      # SPACE
+    @test Awabi.get_char_info(cp, UInt16(0x6f22)) == Awabi.CharInfo(2, 4, 2, 0, 0)    # KANJI 漢
+    @test Awabi.get_char_info(cp, UInt16(0x3007)) == Awabi.CharInfo(3, 264, 0, 1, 1)  # SYMBOL
+    @test Awabi.get_char_info(cp, UInt16(0x31)) == Awabi.CharInfo(4, 16, 0, 1, 1)     # NUMERIC 1
+    @test Awabi.get_char_info(cp, UInt16(0x3042)) == Awabi.CharInfo(6, 64, 2, 1, 0)   # HIRAGANA あ
+    @test Awabi.get_char_info(cp, UInt16(0x4e00)) == Awabi.CharInfo(8, 260, 0, 1, 1)  # KANJINUMERIC 一
 end

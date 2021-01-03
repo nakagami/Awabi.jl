@@ -42,6 +42,14 @@ struct CharProperty
     category_names:: Vector{String}
 end
 
+struct CharInfo
+    default_type::UInt32
+    type::UInt32
+    char_count::UInt32
+    group::UInt32
+    invoke::UInt32
+end
+
 function char_to_ucs2(ch::Char)::UInt16
     UInt16(UInt32(ch) & 0xFFFF)
 end
@@ -50,13 +58,24 @@ function get_char_propery(path::AbstractString)::CharProperty
     category_names = []
     f = open(path)
     num_categories = read(f, UInt32)
-    for i in 1:num_categories
+    for _ in 1:num_categories
         raw_data = zeros(UInt8, 32)
         readbytes!(f, raw_data, 32)
         push!(category_names, String(raw_data[1:findfirst(x -> x==0, raw_data)-1]))
     end
     mmap = Mmap.mmap(f, Vector{UInt32}, 0xFFFF)
     CharProperty(mmap, category_names)
+end
+
+function get_char_info(cp::CharProperty, code_point::UInt16)::CharInfo
+    v = cp.mmap[code_point+1]
+    CharInfo(
+        (v >> 18) & 0b11111111,
+        v & 0b111111111111111111,
+        (v >> 26) & 0b1111,
+        (v >> 30) & 0b1,
+        (v >> 31) & 0b1
+    )
 end
 
 #------------------------------------------------------------------------------
