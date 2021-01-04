@@ -113,6 +113,25 @@ function get_char_info(cp::CharProperty, code_point::UInt16)::CharInfo
     )
 end
 
+function get_group_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt32)::Int64
+    i = 1
+    char_count = 0
+    while i <= length(s)
+        ch16, ln = utf8_to_ucs2(s, i)
+        char_info = get_char_info(cp, ch16)
+        if ((1 << default_type) & char_info.type) != 0
+            i += ln
+            char_count += 1
+            if char_count > MAX_GROUPING_SIZE
+                return -1
+            end
+        else
+            break
+        end
+    end
+    i - 1
+end
+
 #------------------------------------------------------------------------------
 
 struct MeCabDic
