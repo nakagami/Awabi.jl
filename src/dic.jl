@@ -150,6 +150,33 @@ function get_count_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt
     i - 1
 end
 
+function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, Vector{Int64}, Bool}
+    ln_list::Vector{Int64} = []
+    ch16, first_ln = utf8_to_ucs2(s, 1)
+    char_info = get_char_info(cp, ch16)
+    if group != 0
+        ln = self.get_group_length(s, default_type)
+        if ln > 0
+            push!(ln_list, ln)
+        end
+    end
+    if count != 0
+        n = 1
+        while n <= count
+            ln = get_count_length(cp, char_info.default_type, n)
+            if ln < 0
+                break
+            end
+            push!(ln_list, ln)
+            n += 1
+        end
+    end
+    if length(ln_list) == 0
+        push!(ln_list, fist_ln)
+    end
+    (char_info.default_type, ln_list, char_info.invoke == 1)
+end
+
 #------------------------------------------------------------------------------
 
 struct MeCabDic
