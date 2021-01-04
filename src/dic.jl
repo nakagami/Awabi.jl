@@ -99,6 +99,7 @@ function get_char_propery(path::AbstractString)::CharProperty
         push!(category_names, String(raw_data[1:findfirst(x -> x==0, raw_data)-1]))
     end
     mmap = Mmap.mmap(f, Vector{UInt32}, 0xFFFF)
+    close(f)
     CharProperty(mmap, category_names)
 end
 
@@ -179,14 +180,41 @@ end
 
 #------------------------------------------------------------------------------
 
-struct MeCabDic
-    mmap
+struct MecabDic
+    mmap::UInt8
     dic_size::UInt32
     lsize::UInt32
     rsize::UInt32
     da_offset::UInt32
     token_offset::UInt32
     feature_offset::UInt32
+end
+
+function get_mecabdic(path::AbstractString)::MecabDic
+    f = open(path)
+    dic_size = read(f, UInt32) ^ 0xef718f77
+    version = read(f, UInt32)
+    dictype = read(f, UInt32)
+    lexsize = read(f, UInt32)
+    lsize = read(f, UInt32)
+    rsize = read(f, UInt32)
+    dsize = read(f, UInt32)
+    tsize = read(f, UInt32)
+    fsize = read(f, UInt32)
+    read(f, UInt32)     # 0:dummy
+    charset = f.read(32)
+    raw_data = zeros(UInt8, 32)
+    readbytes!(f, raw_data, 32)
+    charset = String(raw_data[1:findfirst(x -> x==0, raw_data)-1])
+    da_offset = 1
+    token_offset = 1 + dsize
+    feature_offset = token_offset + tsize
+    mmap = Mmap.mmap(f, Vector{UInt8}, dic_size-72)
+    close(f)
+    MecabDic(
+        mmap, dic_size, dic_size, lsize, rsize,
+        da_offset, token_offset, feature_offset
+    )
 end
 
 #------------------------------------------------------------------------------
@@ -202,6 +230,7 @@ function get_matrix(path::AbstractString)::Matrix
     lsize = UInt32(read(f, UInt16))
     rsize = UInt32(read(f, UInt16))
     mmap = Mmap.mmap(f, Vector{Int16}, lsize * rsize)
+    close(f)
     Matrix(mmap, lsize, rsize)
 end
 
