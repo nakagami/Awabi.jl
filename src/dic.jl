@@ -132,6 +132,24 @@ function get_group_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt
     i - 1
 end
 
+function get_count_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt32, count::Int64)::Int64
+    i = 1
+    j = 1
+    while j <= count
+        if i > length(s)
+            return -1
+        end
+        ch16, ln = utf8_to_ucs2(s, i)
+        char_info = get_char_info(cp, ch16)
+        if ((1 << default_type) & char_info.type) == 0
+            return -1
+        end
+        i += ln
+        j += 1
+    end
+    i - 1
+end
+
 #------------------------------------------------------------------------------
 
 struct MeCabDic
