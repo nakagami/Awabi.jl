@@ -21,12 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Awabi
 
-include("mecabrc.jl")
-include("dic.jl")
-include("tokenizer.jl")
 
-greet() = print("Hello World!")
+struct Tokenizer
+end
 
-end # module
