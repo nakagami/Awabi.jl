@@ -217,6 +217,13 @@ function get_mecabdic(path::AbstractString)::MecabDic
     )
 end
 
+
+function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple(Vector{DicEntry}, Bool)
+    results = Vector{DicEntry}
+    # TODO
+    (results, true)
+end
+
 #------------------------------------------------------------------------------
 
 struct Matrix
