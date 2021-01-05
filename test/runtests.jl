@@ -24,7 +24,6 @@ end
         "DEFAULT", "SPACE", "KANJI", "SYMBOL", "NUMERIC", "ALPHA",
         "HIRAGANA", "KATAKANA", "KANJINUMERIC", "GREEK", "CYRILLIC"
     ]
-
     @test Awabi.get_char_info(cp, UInt16(0)) == Awabi.CharInfo(0, 1, 0, 1, 0)         # DEFAULT
     @test Awabi.get_char_info(cp, UInt16(0x20)) == Awabi.CharInfo(1, 2, 0, 1, 0)      # SPACE
     @test Awabi.get_char_info(cp, UInt16(0x09)) == Awabi.CharInfo(1, 2, 0, 1, 0)      # SPACE
@@ -33,4 +32,13 @@ end
     @test Awabi.get_char_info(cp, UInt16(0x31)) == Awabi.CharInfo(4, 16, 0, 1, 1)     # NUMERIC 1
     @test Awabi.get_char_info(cp, UInt16(0x3042)) == Awabi.CharInfo(6, 64, 2, 1, 0)   # HIRAGANA あ
     @test Awabi.get_char_info(cp, UInt16(0x4e00)) == Awabi.CharInfo(8, 260, 0, 1, 1)  # KANJINUMERIC 一
+
+    # lookup_unknowns
+    unk_dic = Awabi.get_mecabdic(
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "unk.dic")
+    )
+    @test Awabi.exact_match_search(unk_dic, Vector{UInt8}("SPACE")) == Int32(9729)
+
+    # TODO:
+
 end

@@ -181,7 +181,7 @@ end
 #------------------------------------------------------------------------------
 
 struct MecabDic
-    mmap::UInt8
+    mmap::Vector{UInt8}
     dic_size::UInt32
     lsize::UInt32
     rsize::UInt32
@@ -202,7 +202,6 @@ function get_mecabdic(path::AbstractString)::MecabDic
     tsize = read(f, UInt32)
     fsize = read(f, UInt32)
     read(f, UInt32)     # 0:dummy
-    charset = f.read(32)
     raw_data = zeros(UInt8, 32)
     readbytes!(f, raw_data, 32)
     charset = String(raw_data[1:findfirst(x -> x==0, raw_data)-1])
@@ -212,11 +211,39 @@ function get_mecabdic(path::AbstractString)::MecabDic
     mmap = Mmap.mmap(f, Vector{UInt8}, dic_size-72)
     close(f)
     MecabDic(
-        mmap, dic_size, dic_size, lsize, rsize,
+        mmap, dic_size, lsize, rsize,
         da_offset, token_offset, feature_offset
     )
 end
 
+function base_check(dic::MecabDic, idx::UInt32)::Tuple{Int32, UInt32}
+    i = dic.da_offset + idx * 8
+    base = reinterpret(Int32, view(dic.mmap, i:i+3))
+    check = reinterpret(UInt32, view(dic.mmap, i+4:i+7))
+    (base[1], check[1])
+end
+
+function exact_match_search(dic::MecabDic, s::Vector{UInt8})::Int32
+    v::Int32 = -1
+    b, _ = base_check(dic, UInt32(0))
+    for item in s
+        p = UInt32(b + Int32(item) + 1)
+        base, check = base_check(dic, p)
+        if b == Int32(check)
+            b = base
+        else
+            return v
+        end
+    end
+
+    p = UInt32(b)
+    n, check = base_check(dic, p)
+    if b == Int32(check) && n < 0
+        v = Int32(-n-1)
+    end
+
+    v
+end
 
 function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple(Vector{DicEntry}, Bool)
     results = Vector{DicEntry}
