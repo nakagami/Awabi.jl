@@ -218,9 +218,7 @@ end
 
 function base_check(dic::MecabDic, idx::UInt32)::Tuple{Int32, UInt32}
     i = dic.da_offset + idx * 8
-    base = reinterpret(Int32, view(dic.mmap, i:i+3))
-    check = reinterpret(UInt32, view(dic.mmap, i+4:i+7))
-    (base[1], check[1])
+    (reinterpret(Int32, view(dic.mmap, i:i+3))[1], reinterpret(UInt32, view(dic.mmap, i+4:i+7))[1])
 end
 
 function exact_match_search(dic::MecabDic, s::Vector{UInt8})::Int32
@@ -243,6 +241,55 @@ function exact_match_search(dic::MecabDic, s::Vector{UInt8})::Int32
     end
 
     v
+end
+
+function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Int32, Int64}
+    results::Vector{Int32, Int64} = []
+    b, _ = base_check(dic, UInt32(0))
+    for i in 1::length(s)
+        item = s[i]
+        p = UInt32(b)
+        n, check = base_check(dic, p)
+        if b == Int32(check) && n < 0
+            push!(results, (-n-1, Int64(i)))
+        end
+        p = UInt32(b + Int32(item) + 1)
+        base, check = base_check(dic, p)
+        if b == Int32(check)
+            b = base
+        else
+            return results
+        end
+    end
+    p = UInt(b)
+    n, check = base_check(dic, p)
+    if b == Int32(check) && n < 0
+        push!((-n-1, length(s)))
+    end
+
+    results
+end
+
+function get_entries_by_index(dic::MecabDic, idx::Int64, count::Int64, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
+    results::Vector{DicEntry} = []
+
+    # TODO:
+
+    results
+end
+
+function get_entries(dic::MecabDic, result::UInt32, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
+    index = result >> 8
+    count = result & 0xFF
+    get_entries_by_index(dic, count, s, skip)
+end
+
+function lookup(dic::MecabDic, s::Vector{UInt8})::Vector{DicEntry}
+    results::Vector{DicEntry} = []
+
+    # TODO:
+
+    results
 end
 
 function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple(Vector{DicEntry}, Bool)
