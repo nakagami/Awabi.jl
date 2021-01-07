@@ -26,12 +26,12 @@ using Mmap
 const MAX_GROUPING_SIZE = 24
 
 struct DicEntry
-    original::String
+    original::AbstractArray{UInt8, 1}
     lc_attr::UInt16
     rc_attr::UInt16
     posid::UInt16
     wcost::Int16
-    feature::String
+    feature::AbstractArray{UInt8, 1}
     skip::Bool
 end
 
@@ -156,7 +156,7 @@ function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, 
     ch16, first_ln = utf8_to_ucs2(s, 1)
     char_info = get_char_info(cp, ch16)
     if group != 0
-        ln = self.get_group_length(s, default_type)
+        ln = cp.get_group_length(s, default_type)
         if ln > 0
             push!(ln_list, ln)
         end
@@ -208,7 +208,7 @@ function get_mecabdic(path::AbstractString)::MecabDic
     da_offset = 1
     token_offset = 1 + dsize
     feature_offset = token_offset + tsize
-    mmap = Mmap.mmap(f, Vector{UInt8}, dic_size-72)
+    mmap = Mmap.mmap(f, Vector{UInt8}, filesize(path)-72)
     close(f)
     MecabDic(
         mmap, dic_size, lsize, rsize,
@@ -243,10 +243,10 @@ function exact_match_search(dic::MecabDic, s::Vector{UInt8})::Int32
     v
 end
 
-function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Int32, Int64}
-    results::Vector{Int32, Int64} = []
+function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Tuple{Int32, Int64}}
+    results::Vector{Tuple{Int32, Int64}} = []
     b, _ = base_check(dic, UInt32(0))
-    for i in 1::length(s)
+    for i in 1:length(s)
         item = s[i]
         p = UInt32(b)
         n, check = base_check(dic, p)
@@ -270,30 +270,47 @@ function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Int32, In
     results
 end
 
-function get_entries_by_index(dic::MecabDic, idx::Int64, count::Int64, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
+function get_entries_by_index(dic::MecabDic, idx::UInt32, count::UInt32, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
     results::Vector{DicEntry} = []
+    for i in 1:count
+        offset = dic.token_offset + (idx + i-1) * 16
+        lc_attr = reinterpret(UInt16, view(dic.mmap, offset:offset+1))[1]
+        rc_attr = reinterpret(UInt16, view(dic.mmap, offset+2:offset+3))[1]
+        posid = reinterpret(UInt16, view(dic.mmap, offset+4:offset+5))[1]
+        wcost = reinterpret(Int16, view(dic.mmap, offset+6:offset+7))[1]
+        feature_len = reinterpret(UInt32, view(dic.mmap, offset+8:offset+11))[1]
+        feature_start = offset + feature_len
+        x = feature_start
+        while dic.mmap[x] != 0
+            x = x+1
+        end
+        feature = view(dic.mmap, offset+feature_len:x-1)
 
-    # TODO:
+        push!(results, DicEntry(s, lc_attr, rc_attr, posid, wcost, feature, skip))
+    end
 
     results
 end
 
 function get_entries(dic::MecabDic, result::UInt32, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
-    index = result >> 8
+    idx = result >> 8
     count = result & 0xFF
-    get_entries_by_index(dic, count, s, skip)
+    get_entries_by_index(dic, inx, count, s, skip)
 end
 
 function lookup(dic::MecabDic, s::Vector{UInt8})::Vector{DicEntry}
     results::Vector{DicEntry} = []
-
-    # TODO:
+    for (result, len) in common_prefix_search(dic, s)
+        idx = UInt32(result >> 8)
+        count = UInt32(result & 0xFF)
+        results = vcat(results, get_entries_by_index(dic, idx, count, s, false))
+    end
 
     results
 end
 
-function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple(Vector{DicEntry}, Bool)
-    results = Vector{DicEntry}
+function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple{Vector{DicEntry}, Bool}
+    results::Vector{DicEntry} = []
     # TODO
     (results, true)
 end

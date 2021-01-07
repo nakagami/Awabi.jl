@@ -33,12 +33,22 @@ end
     @test Awabi.get_char_info(cp, UInt16(0x3042)) == Awabi.CharInfo(6, 64, 2, 1, 0)   # HIRAGANA あ
     @test Awabi.get_char_info(cp, UInt16(0x4e00)) == Awabi.CharInfo(8, 260, 0, 1, 1)  # KANJINUMERIC 一
 
+    # lookup
+    sys_dic = Awabi.get_mecabdic(
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "sys.dic")
+    )
+    s = Vector{UInt8}("すもももももももものうち")
+    @test length(Awabi.common_prefix_search(sys_dic, s)) == 3
+    @test length(Awabi.lookup(sys_dic, s)) == 9
+    s = Vector{UInt8}("もももももも")
+    @test length(Awabi.common_prefix_search(sys_dic, s)) == 2
+    @test length(Awabi.lookup(sys_dic, s)) == 4
+
     # lookup_unknowns
     unk_dic = Awabi.get_mecabdic(
         Awabi.get_dic_path(Awabi.get_mecabrc_map(), "unk.dic")
     )
     @test Awabi.exact_match_search(unk_dic, Vector{UInt8}("SPACE")) == Int32(9729)
-
-    # TODO:
-
+    #entries, invoke = Awabi.lookup_unknowns(unk_dic, Vector{UInt8}("１９６７年"), cp)
+    #@test entries[0][0] == Vector{UInt8}("１９６７")
 end
