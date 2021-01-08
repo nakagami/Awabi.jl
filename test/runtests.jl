@@ -21,8 +21,8 @@ end
         Awabi.get_dic_path(Awabi.get_mecabrc_map(), "char.bin")
     )
     @test cp.category_names == [
-        "DEFAULT", "SPACE", "KANJI", "SYMBOL", "NUMERIC", "ALPHA",
-        "HIRAGANA", "KATAKANA", "KANJINUMERIC", "GREEK", "CYRILLIC"
+        b"DEFAULT", b"SPACE", b"KANJI", b"SYMBOL", b"NUMERIC", b"ALPHA",
+        b"HIRAGANA", b"KATAKANA", b"KANJINUMERIC", b"GREEK", b"CYRILLIC"
     ]
     @test Awabi.get_char_info(cp, UInt16(0)) == Awabi.CharInfo(0, 1, 0, 1, 0)         # DEFAULT
     @test Awabi.get_char_info(cp, UInt16(0x20)) == Awabi.CharInfo(1, 2, 0, 1, 0)      # SPACE
@@ -49,6 +49,6 @@ end
         Awabi.get_dic_path(Awabi.get_mecabrc_map(), "unk.dic")
     )
     @test Awabi.exact_match_search(unk_dic, Vector{UInt8}("SPACE")) == Int32(9729)
-    #entries, invoke = Awabi.lookup_unknowns(unk_dic, Vector{UInt8}("１９６７年"), cp)
-    #@test entries[0][0] == Vector{UInt8}("１９６７")
+    entries, invoke = Awabi.lookup_unknowns(unk_dic, Vector{UInt8}("１９６７年"), cp)
+    @test entries[1].original == b"１９６７"
 end

@@ -26,12 +26,12 @@ using Mmap
 const MAX_GROUPING_SIZE = 24
 
 struct DicEntry
-    original::AbstractArray{UInt8, 1}
+    original::Vector{UInt8}
     lc_attr::UInt16
     rc_attr::UInt16
     posid::UInt16
     wcost::Int16
-    feature::AbstractArray{UInt8, 1}
+    feature::Vector{UInt8}
     skip::Bool
 end
 
@@ -39,13 +39,13 @@ end
 
 struct CharProperty
     mmap::Vector{UInt32}
-    category_names:: Vector{String}
+    category_names:: Vector{Vector{UInt8}}
 end
 
 struct CharInfo
     default_type::UInt32
     type::UInt32
-    char_count::UInt32
+    count::UInt32
     group::UInt32
     invoke::UInt32
 end
@@ -96,7 +96,7 @@ function get_char_propery(path::AbstractString)::CharProperty
     for _ in 1:num_categories
         raw_data = zeros(UInt8, 32)
         readbytes!(f, raw_data, 32)
-        push!(category_names, String(raw_data[1:findfirst(x -> x==0, raw_data)-1]))
+        push!(category_names, view(raw_data, 1:findfirst(x -> x==0, raw_data)-1))
     end
     mmap = Mmap.mmap(f, Vector{UInt32}, 0xFFFF)
     close(f)
@@ -151,19 +151,19 @@ function get_count_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt
     i - 1
 end
 
-function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, Vector{Int64}, Bool}
-    ln_list::Vector{Int64} = []
+function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, Vector{UInt32}, Bool}
+    ln_list::Vector{UInt32} = []
     ch16, first_ln = utf8_to_ucs2(s, 1)
     char_info = get_char_info(cp, ch16)
-    if group != 0
-        ln = cp.get_group_length(s, default_type)
+    if char_info.group != 0
+        ln = get_group_length(cp, s, char_info.default_type)
         if ln > 0
             push!(ln_list, ln)
         end
     end
-    if count != 0
+    if char_info.count != 0
         n = 1
-        while n <= count
+        while n <= char_info.count
             ln = get_count_length(cp, char_info.default_type, n)
             if ln < 0
                 break
@@ -285,7 +285,6 @@ function get_entries_by_index(dic::MecabDic, idx::UInt32, count::UInt32, s::Vect
             x = x+1
         end
         feature = view(dic.mmap, offset+feature_len:x-1)
-
         push!(results, DicEntry(s, lc_attr, rc_attr, posid, wcost, feature, skip))
     end
 
@@ -295,7 +294,7 @@ end
 function get_entries(dic::MecabDic, result::UInt32, s::Vector{UInt8}, skip::Bool)::Vector{DicEntry}
     idx = result >> 8
     count = result & 0xFF
-    get_entries_by_index(dic, inx, count, s, skip)
+    get_entries_by_index(dic, idx, count, s, skip)
 end
 
 function lookup(dic::MecabDic, s::Vector{UInt8})::Vector{DicEntry}
@@ -310,9 +309,16 @@ function lookup(dic::MecabDic, s::Vector{UInt8})::Vector{DicEntry}
 end
 
 function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple{Vector{DicEntry}, Bool}
+    default_type, ln_vec, invoke = get_unknown_lengths(cp, s)
+    category_name = cp.category_names[default_type]
+    result = exact_match_search(dic, category_name)
     results::Vector{DicEntry} = []
-    # TODO
-    (results, true)
+    for i in ln_vec
+        new_results = get_entries(dic, UInt32(result), s[1:i], category_name == b"SPACE")
+        results = vcat(results, new_results)
+    end
+
+    (results, invoke)
 end
 
 #------------------------------------------------------------------------------
