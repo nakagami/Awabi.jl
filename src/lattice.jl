@@ -21,13 +21,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ################################################################################
-module Awabi
 
-include("mecabrc.jl")
-include("dic.jl")
-include("lattice.jl")
-include("tokenizer.jl")
+struct Node
+    entry::Union{DicEntry, Nothing}
+    pos::Int32
+    epos::Int32
+    index::Int32
+    left_id::Int32
+    right_id::Int32
+    cost::Int32
+    min_cost::Int32
+    back_pos::Int32
+    back_index::Int32
+    skip::Bool
+end
 
-greet() = print("Hello World!")
+struct Lattice
+    snodes::Vector{Vector{Node}}
+    enodes::Vector{Vector{Node}}
+    p::Int32
+end
 
-end # module
+struct BackwardPath
+    cost_from_bos::Int32
+    cost_from_eos::Int32
+    back_path::Vector{Node}
+end
