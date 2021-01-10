@@ -2,7 +2,7 @@ using Test, Awabi
 
 @testset "mecabrc" begin
     @test Awabi.find_mecabrc() == "/etc/mecabrc"
-    mecabrc_map = Awabi.get_mecabrc_map()
+    mecabrc_map = Awabi.get_mecabrc_map(Awabi.find_mecabrc())
     @test mecabrc_map["dicdir"] == "/var/lib/mecab/dic/debian"
     @test Awabi.get_dic_path(mecabrc_map, "sys.dic") == "/var/lib/mecab/dic/debian/sys.dic"
 end
@@ -11,14 +11,14 @@ end
 @testset "dic" begin
     # Matrix
     m = Awabi.get_matrix(
-        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "matrix.bin")
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(Awabi.find_mecabrc()), "matrix.bin")
     )
     @test Awabi.get_trans_cost(m, UInt16(555), UInt16(1283)) == 340
     @test Awabi.get_trans_cost(m, UInt16(10), UInt16(1293)) == -1376
 
     # CharInfo
     cp = Awabi.get_char_propery(
-        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "char.bin")
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(Awabi.find_mecabrc()), "char.bin")
     )
     @test cp.category_names == [
         b"DEFAULT", b"SPACE", b"KANJI", b"SYMBOL", b"NUMERIC", b"ALPHA",
@@ -35,7 +35,7 @@ end
 
     # lookup
     sys_dic = Awabi.get_mecabdic(
-        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "sys.dic")
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(Awabi.find_mecabrc()), "sys.dic")
     )
     s = Vector{UInt8}("すもももももももものうち")
     @test length(Awabi.common_prefix_search(sys_dic, s)) == 3
@@ -46,7 +46,7 @@ end
 
     # lookup_unknowns
     unk_dic = Awabi.get_mecabdic(
-        Awabi.get_dic_path(Awabi.get_mecabrc_map(), "unk.dic")
+        Awabi.get_dic_path(Awabi.get_mecabrc_map(Awabi.find_mecabrc()), "unk.dic")
     )
     @test Awabi.exact_match_search(unk_dic, Vector{UInt8}("SPACE")) == Int32(9729)
     entries, invoke = Awabi.lookup_unknowns(unk_dic, Vector{UInt8}("１９６７年"), cp)

@@ -46,10 +46,6 @@ function get_mecabrc_map(rc_path::String)::Dict{String, String}
     mecabrc_map
 end
 
-function get_mecabrc_map()::Dict{String, String}
-    get_mecabrc_map(find_mecabrc())
-end
-
 function get_dic_path(mecabrc_map, filename)::String
     joinpath(mecabrc_map["dicdir"], filename)
 end

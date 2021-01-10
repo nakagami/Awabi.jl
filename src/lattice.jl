@@ -22,7 +22,7 @@
 # SOFTWARE.
 ################################################################################
 
-struct Node
+mutable struct Node
     entry::Union{DicEntry, Nothing}
     pos::Int32
     epos::Int32
@@ -36,10 +36,153 @@ struct Node
     skip::Bool
 end
 
-struct Lattice
+function bos()::Node
+    Node(
+        nothing,    # entry
+        0,          # pos
+        1,          # epos
+        0,          # index
+        -1,         # left_id
+        0,          # right_id,
+        0,          # cost
+        0,          # min_cost
+        -1,         # back_pos
+        -1,         # back_index
+        false       # skip
+    )
+end
+
+function eos(pos::Int32)::Node
+    Node(
+        nothing,    # entry
+        pos,        # pos
+        pos+1,      # epos
+        0,          # index
+        0,          # left_id
+        -1,         # right_id,
+        0,          # cost
+        0x7FFFFFFF, # min_cost
+        -1,         # back_pos
+        -1,         # back_index
+        false       # skip
+    )
+end
+
+function new_node(e::DicEntry)
+    Node(
+        e,          # entry
+        0,          # pos
+        0,          # epos
+        e.posid,    # index
+        e.lc_attr,  # left_id
+        e.rc_attr,  # right_id,
+        e.wcost,    # cost
+        0x7FFFFFFF, # min_cost
+        -1,         # back_pos
+        -1,         # back_index
+        e.skip      # skip
+    )
+end
+
+function is_bos(node::Node)::Bool
+    node == nothing && node.pos == 0
+end
+
+function is_eos(node::Node)::Bool
+    node == nothing && node.pos != 0
+end
+
+function node_len(node::Node)::Int32
+    if node == nothing
+        Int32(1)
+    else
+        Int32(length(Node.original))
+    end
+end
+
+mutable struct Lattice
     snodes::Vector{Vector{Node}}
     enodes::Vector{Vector{Node}}
     p::Int32
+end
+
+function new_lattice(size::Int64)
+    snodes::Vector{Vector{Node}} = []
+    enodes::Vector{Vector{Node}} = []
+
+    push!(enodes,[])
+    for _ in 1:(size + 2)
+        push!(snodes, [])
+        push!(enodes, [])
+    end
+    bos::Node = bos()
+    push!(snodes[1], bos)
+    push!(enodes[2], bos)
+
+    Lattice(snodes, enodes, 1)
+end
+
+function add!(lattice::Lattice, node::Node, matrix::Matrix)
+    min_cost = node.min_cost
+    best_node = lattice.enode[lattice.p+1][1]
+
+    for enode in lattice.enodes[lattice.p+1]
+        if enode.skip
+            for enode2 in lattice.enodes[enode.pos+1]
+                cost = enode2.min_cost + get_trans_cost(matrix, UInt16(enode2.right_id), UInt16(node.left_id))
+                if cost < min_cost
+                    min_cost = cost
+                    best_node = enode
+                end
+            end
+        else
+            cost = enode.min_cost + get_trans_cost(matrix, UInt16(enode.right_id), UInt16(node.left_id))
+            if cost < min_cost
+                min_cost = cost
+                best_node = enode
+            end
+        end
+    end
+
+    node.min_cost = min_cost + node.cost
+    node.back_index = best_node.index
+    node.back_pos = best_node.pos
+    node.pos = lattice.p
+    node.epos = lattice.p + node_len(node)
+    node.index = length(lattice.snodes[lattice.p+1])
+    push!(lattice.snodes[node.pos+1], node)
+    push!(lattice.enodes[node.epos], node)
+end
+
+function forward(lattice::Lattice)::Int64
+    old_p = lattice.p
+    lattice.p += 1
+    while length(self.enodes[lattice.p+1]) == 0
+        lattice.p += 1
+    end
+    lattice.p - old.p
+end
+
+function end!(lattice::Lattice, matrix::Matrix)
+    add(lattice, eos(lattice.p), matrix)
+    lattice.snodes = lattice.snodes[1:lattice.p+2]
+    lattice.enodes = lattice.enodes[1:lattice.p+3]
+end
+
+function backward(lattice::Lattice)::Vector{Node}
+    @assert lattice.snodes[length(lattice.snode)][1].is_eos()
+
+    shortest_path::Vector{Node} = []
+    pos = length(lattice.snodes) -1
+    index = 0
+    while pos >= 0
+       node = self.snodes[pos+1][index+1]
+       index = node.back_index
+       pos = node.back_pos
+       push!(shortest_path, node)
+    end
+
+    reverse(shortest_path)
 end
 
 struct BackwardPath

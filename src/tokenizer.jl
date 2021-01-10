@@ -24,5 +24,38 @@
 
 
 struct Tokenizer
+    # system dictionary
+    sys_dic::MecabDic
+    # user dictional
+    user_dic::Union{MecabDic, Nothing}
+
+    # for unknown chars
+    char_propery::CharProperty
+    unk_dic::MecabDic
+
+    #trans cost matrix
+    matrix::Matrix
 end
 
+function get_tokenizer(mecabrc_path::AbstractString)
+    # TODO:
+end
+
+function get_tokenizer()
+    get_tokenizer(find_mecabrc())
+end
+
+function build_lattice(tokenizer::Tokenizer, s::Vector{UInt8})::Lattice
+    lattice = Lattice::new_lattice(length(s))
+    # TODO:
+
+    lattice
+end
+
+function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String, String}}
+
+    entries::Vector{Tuple{String, String}}
+    # TODO:
+
+    entries
+end
