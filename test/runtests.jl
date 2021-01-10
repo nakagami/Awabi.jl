@@ -52,3 +52,9 @@ end
     entries, invoke = Awabi.lookup_unknowns(unk_dic, Vector{UInt8}("１９６７年"), cp)
     @test entries[1].original == b"１９６７"
 end
+
+@testset "tokenize" begin
+    tokenizer = Awabi.get_tokenizer()
+    #Awabi.tokenize(tokenizer, "すもももももももものうち")
+end
+

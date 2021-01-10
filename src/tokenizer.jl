@@ -37,25 +37,78 @@ struct Tokenizer
     matrix::Matrix
 end
 
+function get_tokenizer(mecabrc_map::Dict{String, String})::Tokenizer
+    sys_dic = get_mecabdic(get_dic_path(mecabrc_map, "sys.dic"))
+    if haskey(mecabrc_map, "userdic")
+        user_dic = get_mecabdic(mecabrc_map["userdic"])
+    else
+        user_dic = nothing
+    end
+    char_property = get_char_propery(get_dic_path(mecabrc_map, "char.bin"))
+    unk_dic = get_mecabdic(get_dic_path(mecabrc_map, "unk.dic"))
+    matrix = get_matrix(get_dic_path(mecabrc_map, "matrix.bin"))
+    Tokenizer(sys_dic, user_dic, char_property, unk_dic, matrix)
+end
+
 function get_tokenizer(mecabrc_path::AbstractString)
-    # TODO:
+    get_tokenizer(get_mecabrc_map(mecabrc_path))
 end
 
 function get_tokenizer()
     get_tokenizer(find_mecabrc())
 end
 
-function build_lattice(tokenizer::Tokenizer, s::Vector{UInt8})::Lattice
-    lattice = Lattice::new_lattice(length(s))
-    # TODO:
+function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
+    s = Vector{UInt8}(sentence)
+    lattice = new_lattice(length(s))
+    pos = 0
+    while pos < length(s)
+        matched = false
 
+        # user_dic
+        if tokenizer.user_dic != nothing
+            user_entries = lookup(user_dic, s[(pos+1):length(s)])
+            if length(user_entries) > 0
+                for e in user_entries
+                    add!(lattice, new_node(e), tokenizer.matrix)
+                end
+                matched = true
+            end
+        end
+
+        # sys_dic
+        sys_entries = lookup(tokenizer.sys_dic, s[(pos+1):length(s)])
+        if length(sys_entries) > 0
+            for e in sys_entries
+                add!(lattice, new_node(e), tokenizer.matrix)
+            end
+            matched = true
+        end
+
+        # unknown
+        unk_entries, invoke = lookup_unknowns(tokenizer.unk_dic, s[pos+1:length(s)], tokenizer.char_propery)
+        if invoke || !matched
+            for e in unk_entries
+                add!(lattice, new_node(e), matrix, tokenizer.matrix)
+            end
+        end
+
+        pos += forward(lattice)
+    end
+    lattice.end!(lattice.matrix)
     lattice
 end
 
 function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String, String}}
+    entries::Vector{Tuple{String, String}} = []
 
-    entries::Vector{Tuple{String, String}}
-    # TODO:
+    lattice = build_lattice(tokenizer, s)
+    nodes = backward(lattice)
+    @assert is_bos(nodes[1])
+    @assert is_eos(nodes[length(nodes)])
+    for i in 2..(length(nodes) -1)
+        push!(entries, nodes[i].entry)
+    end
 
     entries
 end

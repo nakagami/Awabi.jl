@@ -62,6 +62,8 @@ function utf8_to_ucs2(s::Vector{UInt8}, index::Int64)::Tuple{UInt16, Int64}
         ln = 3
     elseif (s[index] & 0b11111000) == 0b11110000
         ln = 4
+    else
+        throw("invalid utf8 string array: $(s)")
     end
 
     if ln == 1
@@ -164,7 +166,7 @@ function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, 
     if char_info.count != 0
         n = 1
         while n <= char_info.count
-            ln = get_count_length(cp, char_info.default_type, n)
+            ln = get_count_length(cp, s, char_info.default_type, n)
             if ln < 0
                 break
             end

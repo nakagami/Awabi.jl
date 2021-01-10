@@ -36,7 +36,7 @@ mutable struct Node
     skip::Bool
 end
 
-function bos()::Node
+function new_bos()::Node
     Node(
         nothing,    # entry
         0,          # pos
@@ -52,7 +52,7 @@ function bos()::Node
     )
 end
 
-function eos(pos::Int32)::Node
+function new_eos(pos::Int32)::Node
     Node(
         nothing,    # entry
         pos,        # pos
@@ -96,7 +96,7 @@ function node_len(node::Node)::Int32
     if node == nothing
         Int32(1)
     else
-        Int32(length(Node.original))
+        Int32(length(node.entry.original))
     end
 end
 
@@ -115,7 +115,7 @@ function new_lattice(size::Int64)
         push!(snodes, [])
         push!(enodes, [])
     end
-    bos::Node = bos()
+    bos::Node = new_bos()
     push!(snodes[1], bos)
     push!(enodes[2], bos)
 
@@ -124,7 +124,7 @@ end
 
 function add!(lattice::Lattice, node::Node, matrix::Matrix)
     min_cost = node.min_cost
-    best_node = lattice.enode[lattice.p+1][1]
+    best_node = lattice.enodes[lattice.p+1][1]
 
     for enode in lattice.enodes[lattice.p+1]
         if enode.skip
@@ -157,14 +157,14 @@ end
 function forward(lattice::Lattice)::Int64
     old_p = lattice.p
     lattice.p += 1
-    while length(self.enodes[lattice.p+1]) == 0
+    while length(lattice.enodes[lattice.p+1]) == 0
         lattice.p += 1
     end
-    lattice.p - old.p
+    lattice.p - old_p
 end
 
 function end!(lattice::Lattice, matrix::Matrix)
-    add(lattice, eos(lattice.p), matrix)
+    add!(lattice, new_eos(lattice.p), matrix)
     lattice.snodes = lattice.snodes[1:lattice.p+2]
     lattice.enodes = lattice.enodes[1:lattice.p+3]
 end
@@ -176,7 +176,7 @@ function backward(lattice::Lattice)::Vector{Node}
     pos = length(lattice.snodes) -1
     index = 0
     while pos >= 0
-       node = self.snodes[pos+1][index+1]
+       node = lattice.snodes[pos+1][index+1]
        index = node.back_index
        pos = node.back_pos
        push!(shortest_path, node)
