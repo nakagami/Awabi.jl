@@ -55,6 +55,7 @@ end
 
 @testset "tokenize" begin
     tokenizer = Awabi.get_tokenizer()
-    #Awabi.tokenize(tokenizer, "すもももももももものうち")
+    # TODO: @test
+    Awabi.tokenize(tokenizer, "すもももももももものうち")
 end
 

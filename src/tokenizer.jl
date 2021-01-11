@@ -95,7 +95,7 @@ function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
 
         pos += forward(lattice)
     end
-    lattice.end!(lattice.matrix)
+    end!(lattice, tokenizer.matrix)
     lattice
 end
 
@@ -106,8 +106,9 @@ function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String,
     nodes = backward(lattice)
     @assert is_bos(nodes[1])
     @assert is_eos(nodes[length(nodes)])
-    for i in 2..(length(nodes) -1)
-        push!(entries, nodes[i].entry)
+    for i in 2:(length(nodes) -1)
+        entry = nodes[i].entry
+        push!(entries, (String(entry.original), String(entry.feature)))
     end
 
     entries

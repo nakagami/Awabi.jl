@@ -85,15 +85,15 @@ function new_node(e::DicEntry)
 end
 
 function is_bos(node::Node)::Bool
-    node == nothing && node.pos == 0
+    node.entry == nothing && node.pos == 0
 end
 
 function is_eos(node::Node)::Bool
-    node == nothing && node.pos != 0
+    node.entry == nothing && node.pos != 0
 end
 
 function node_len(node::Node)::Int32
-    if node == nothing
+    if node.entry == nothing
         Int32(1)
     else
         Int32(length(node.entry.original))
@@ -151,7 +151,7 @@ function add!(lattice::Lattice, node::Node, matrix::Matrix)
     node.epos = lattice.p + node_len(node)
     node.index = length(lattice.snodes[lattice.p+1])
     push!(lattice.snodes[node.pos+1], node)
-    push!(lattice.enodes[node.epos], node)
+    push!(lattice.enodes[node.epos+1], node)
 end
 
 function forward(lattice::Lattice)::Int64
@@ -165,12 +165,12 @@ end
 
 function end!(lattice::Lattice, matrix::Matrix)
     add!(lattice, new_eos(lattice.p), matrix)
-    lattice.snodes = lattice.snodes[1:lattice.p+2]
-    lattice.enodes = lattice.enodes[1:lattice.p+3]
+    lattice.snodes = lattice.snodes[1:lattice.p+1]
+    lattice.enodes = lattice.enodes[1:lattice.p+2]
 end
 
 function backward(lattice::Lattice)::Vector{Node}
-    @assert lattice.snodes[length(lattice.snode)][1].is_eos()
+    @assert is_eos(lattice.snodes[length(lattice.snodes)][1])
 
     shortest_path::Vector{Node} = []
     pos = length(lattice.snodes) -1
@@ -181,7 +181,6 @@ function backward(lattice::Lattice)::Vector{Node}
        pos = node.back_pos
        push!(shortest_path, node)
     end
-
     reverse(shortest_path)
 end
 
