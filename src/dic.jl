@@ -253,7 +253,7 @@ function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Tuple{Int
         p = UInt32(b)
         n, check = base_check(dic, p)
         if b == Int32(check) && n < 0
-            push!(results, (-n-1, Int64(i)))
+            push!(results, (-n-1, Int64(i)-1))
         end
         p = UInt32(b + Int32(item) + 1)
         base, check = base_check(dic, p)
