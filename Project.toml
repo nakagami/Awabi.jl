@@ -4,6 +4,7 @@ authors = ["Hajime Nakagami <nakagami@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [extras]
