@@ -263,10 +263,10 @@ function common_prefix_search(dic::MecabDic, s::Vector{UInt8})::Vector{Tuple{Int
             return results
         end
     end
-    p = UInt(b)
+    p = UInt32(b)
     n, check = base_check(dic, p)
     if b == Int32(check) && n < 0
-        push!((-n-1, length(s)))
+        push!(results, (-n-1, length(s)))
     end
 
     results
@@ -280,13 +280,13 @@ function get_entries_by_index(dic::MecabDic, idx::UInt32, count::UInt32, s::Vect
         rc_attr = reinterpret(UInt16, view(dic.mmap, offset+2:offset+3))[1]
         posid = reinterpret(UInt16, view(dic.mmap, offset+4:offset+5))[1]
         wcost = reinterpret(Int16, view(dic.mmap, offset+6:offset+7))[1]
-        feature_len = reinterpret(UInt32, view(dic.mmap, offset+8:offset+11))[1]
-        feature_start = offset + feature_len
-        x = feature_start
-        while dic.mmap[x] != 0
-            x = x+1
+        feature = reinterpret(UInt32, view(dic.mmap, offset+8:offset+11))[1]
+        j = dic.feature_offset + feature
+        k = j
+        while dic.mmap[k] != 0
+            k += 1
         end
-        feature = view(dic.mmap, offset+feature_len:x-1)
+        feature = dic.mmap[j:k-1]
         push!(results, DicEntry(s, lc_attr, rc_attr, posid, wcost, feature, skip))
     end
 
@@ -301,10 +301,10 @@ end
 
 function lookup(dic::MecabDic, s::Vector{UInt8})::Vector{DicEntry}
     results::Vector{DicEntry} = []
-    for (result, len) in common_prefix_search(dic, s)
+    for (result, ln) in common_prefix_search(dic, s)
         idx = UInt32(result >> 8)
         count = UInt32(result & 0xFF)
-        results = vcat(results, get_entries_by_index(dic, idx, count, s, false))
+        results = vcat(results, get_entries_by_index(dic, idx, count, s[1:ln], false))
     end
 
     results
