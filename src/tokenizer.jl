@@ -35,28 +35,29 @@ struct Tokenizer
 
     #trans cost matrix
     matrix::Matrix
-end
 
-function get_tokenizer(mecabrc_map::Dict{String, String})::Tokenizer
-    sys_dic = get_mecabdic(get_dic_path(mecabrc_map, "sys.dic"))
-    if haskey(mecabrc_map, "userdic")
-        user_dic = get_mecabdic(mecabrc_map["userdic"])
-    else
-        user_dic = nothing
+    function Tokenizer(mecabrc_map::Dict{String, String})
+        sys_dic = get_mecabdic(get_dic_path(mecabrc_map, "sys.dic"))
+        if haskey(mecabrc_map, "userdic")
+            user_dic = get_mecabdic(mecabrc_map["userdic"])
+        else
+            user_dic = nothing
+        end
+        char_property = get_char_propery(get_dic_path(mecabrc_map, "char.bin"))
+        unk_dic = get_mecabdic(get_dic_path(mecabrc_map, "unk.dic"))
+        matrix = get_matrix(get_dic_path(mecabrc_map, "matrix.bin"))
+        new(sys_dic, user_dic, char_property, unk_dic, matrix)
     end
-    char_property = get_char_propery(get_dic_path(mecabrc_map, "char.bin"))
-    unk_dic = get_mecabdic(get_dic_path(mecabrc_map, "unk.dic"))
-    matrix = get_matrix(get_dic_path(mecabrc_map, "matrix.bin"))
-    Tokenizer(sys_dic, user_dic, char_property, unk_dic, matrix)
+
+    function Tokenizer(mecabrc_path::AbstractString)
+        Tokenizer(get_mecabrc_map(mecabrc_path))
+    end
+
+    function Tokenizer()
+        Tokenizer(find_mecabrc())
+    end
 end
 
-function get_tokenizer(mecabrc_path::AbstractString)
-    get_tokenizer(get_mecabrc_map(mecabrc_path))
-end
-
-function get_tokenizer()
-    get_tokenizer(find_mecabrc())
-end
 
 function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
     s = Vector{UInt8}(sentence)

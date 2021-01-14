@@ -28,6 +28,6 @@ include("dic.jl")
 include("lattice.jl")
 include("tokenizer.jl")
 
-greet() = print("Hello World!")
+export Tokenizer, tokenize
 
 end # module

@@ -84,7 +84,7 @@ end
         ],
     ]
 
-    tokenizer = Awabi.get_tokenizer()
-    @test Awabi.tokenize(tokenizer, "すもももももももものうち") == results[1]
+    tokenizer = Tokenizer()
+    @test tokenize(tokenizer, "すもももももももものうち") == results[1]
 end
 
