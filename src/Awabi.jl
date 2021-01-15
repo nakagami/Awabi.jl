@@ -28,6 +28,6 @@ include("dic.jl")
 include("lattice.jl")
 include("tokenizer.jl")
 
-export Tokenizer, tokenize
+export Tokenizer, tokenize, tokenize_n_best
 
 end # module

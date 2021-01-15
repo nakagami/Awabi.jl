@@ -185,8 +185,60 @@ function backward(lattice::Lattice)::Vector{Node}
     reverse(shortest_path)
 end
 
+function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vector{Node}}
+    paths::Vector{Vector{Node}} = []
+    epos = length(lattice.enodes) -1
+    node = lattice.enodes[epos+1][1]
+    @assert is_eos(node)
+
+    pq = PriorityQueue{BackwardPath, Int32}(Base.Order.Reverse)
+    bp = BackwardPath(node, nothing, matrix)
+    enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
+
+    while length(pq) > 0 && n > 0
+        bp = dequeue!(pq)
+        if is_complete(bp)
+            push!(paths, reverse(bp.back_path))
+            n -= 1
+        else
+            new_node = bp.back_path[length(bp.back_path)]
+            epos = new_node.epos - node_len(new_node)
+            for node in lattice.enodes[epos+1]
+                bp = BackwardPath(node, bp, matrix)
+                enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
+            end
+        end
+    end
+
+    paths
+end
+
 struct BackwardPath
     cost_from_bos::Int32
     cost_from_eos::Int32
     back_path::Vector{Node}
+
+    function BackwardPath(node::Node, right_path::Union{BackwardPath, Nothing}, matrix::Matrix)
+        cost_from_bos = node.min_cost
+        cost_from_eos = 0
+        back_path::Vector{Node} = []
+
+        if right_path != nothing
+            neighbor_node = right_path.back_path[length(right_path.back_path)]
+            cost_from_eos = right_path.cost_from_eos + neighbor_node.cost + get_trans_cost(matrix, UInt16(node.right_id), UInt16(node.left_id))
+            for node in right_path.back_path
+                push!(back_path, node)
+            end
+        else
+            @assert is_eos(node)
+        end
+
+        push!(back_path, node)
+
+        new(cost_from_bos, cost_from_eos, back_path)
+    end
+end
+
+function is_complete(bp::BackwardPath)::Bool
+    is_bos(bp.back_path[length(bp.back_path)])
 end

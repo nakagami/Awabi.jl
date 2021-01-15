@@ -114,3 +114,18 @@ function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String,
 
     entries
 end
+
+function tokenize_n_best(tokenizer::Tokenizer, s::AbstractString, n::Number)::Vector{Vector{Tuple{String, String}}}
+    morphemes_list = []
+
+    lattice = build_lattice(tokenizer, s)
+    for nodes in backward_astar(lattice, n, tokenizer.matrix)
+        morphemes = []
+        for node in nodes[2:length(nodes)-2]
+            push!(morphemes, (String(entry.original), String(entry.feature)))
+        end
+        push!(morphemes_list, morphemes)
+    end
+
+    morphemes_list
+end

@@ -86,5 +86,6 @@ end
 
     tokenizer = Tokenizer()
     @test tokenize(tokenizer, "すもももももももものうち") == results[1]
+    @test tokenize_n_best(tokenizer, "すもももももももものうち", 3) == results
 end
 
