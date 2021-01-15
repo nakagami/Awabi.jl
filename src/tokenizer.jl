@@ -115,7 +115,7 @@ function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String,
     entries
 end
 
-function tokenize_n_best(tokenizer::Tokenizer, s::AbstractString, n::Number)::Vector{Vector{Tuple{String, String}}}
+function tokenize_n_best(tokenizer::Tokenizer, s::AbstractString, n::Int)::Vector{Vector{Tuple{String, String}}}
     morphemes_list = []
 
     lattice = build_lattice(tokenizer, s)
