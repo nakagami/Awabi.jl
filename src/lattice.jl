@@ -105,6 +105,31 @@ function node_len(node::Node)::Int32
     end
 end
 
+function dump_node(node::Node)
+    if node.original != nothing
+        original = String(node.original)
+    else
+        original = ""
+    end
+    if node.feature != nothing
+        feature = String(node.feature)
+    else
+        feature = ""
+    end
+    println("$(original),$(feature),$(node_len(node)),$(node.pos),$(node.epos),$(node.index),$(node.left_id),$(node.right_id),$(node.cost),$(node.min_cost),$(node.back_pos),$(node.back_index),$(node.skip)")
+end
+
+function dump_nodes(prompt::AbstractString, nodes::Vector{Vector{Node}})
+    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    println(prompt)
+    for node_list in nodes
+        println("--------------------------------------------------------------------------------------------------------------")
+        for node in node_list
+            dump_node(node)
+        end
+    end
+end
+
 mutable struct Lattice
     snodes::Vector{Vector{Node}}
     enodes::Vector{Vector{Node}}

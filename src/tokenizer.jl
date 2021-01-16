@@ -97,6 +97,10 @@ function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
         pos += forward(lattice)
     end
     end!(lattice, tokenizer.matrix)
+
+    # dump_nodes("snodes", lattice.snodes)
+    # dump_nodes("enodes", lattice.enodes)
+
     lattice
 end
 
