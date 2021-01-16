@@ -108,8 +108,7 @@ function tokenize(tokenizer::Tokenizer, s::AbstractString)::Vector{Tuple{String,
     @assert is_bos(nodes[1])
     @assert is_eos(nodes[length(nodes)])
     for i in 2:(length(nodes) -1)
-        entry = nodes[i].entry
-        push!(entries, (String(entry.original), String(entry.feature)))
+        push!(entries, (String(nodes[i].original), String(nodes[i].feature)))
     end
 
     entries
@@ -122,7 +121,7 @@ function tokenize_n_best(tokenizer::Tokenizer, s::AbstractString, n::Int)::Vecto
     for nodes in backward_astar(lattice, n, tokenizer.matrix)
         morphemes = []
         for node in nodes[2:length(nodes)-2]
-            push!(morphemes, (String(entry.original), String(entry.feature)))
+            push!(morphemes, (String(node.original), String(node.feature)))
         end
         push!(morphemes_list, morphemes)
     end

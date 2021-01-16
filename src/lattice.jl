@@ -24,7 +24,8 @@
 using DataStructures
 
 mutable struct Node
-    entry::Union{DicEntry, Nothing}
+    original::Union{Vector{UInt8}, Nothing}
+    feature::Union{Vector{UInt8}, Nothing}
     pos::Int32
     epos::Int32
     index::Int32
@@ -39,7 +40,8 @@ end
 
 function new_bos()::Node
     Node(
-        nothing,    # entry
+        nothing,    # original
+        nothing,    # feature
         0,          # pos
         1,          # epos
         0,          # index
@@ -55,7 +57,8 @@ end
 
 function new_eos(pos::Int32)::Node
     Node(
-        nothing,    # entry
+        nothing,    # original
+        nothing,    # feature
         pos,        # pos
         pos+1,      # epos
         0,          # index
@@ -71,7 +74,8 @@ end
 
 function new_node(e::DicEntry)
     Node(
-        e,          # entry
+        e.original, # entry
+        e.feature,  # feature
         0,          # pos
         0,          # epos
         e.posid,    # index
@@ -86,18 +90,18 @@ function new_node(e::DicEntry)
 end
 
 function is_bos(node::Node)::Bool
-    node.entry == nothing && node.pos == 0
+    node.original == nothing && node.pos == 0
 end
 
 function is_eos(node::Node)::Bool
-    node.entry == nothing && node.pos != 0
+    node.original == nothing && node.pos != 0
 end
 
 function node_len(node::Node)::Int32
-    if node.entry == nothing
+    if node.original == nothing
         Int32(1)
     else
-        Int32(length(node.entry.original))
+        Int32(length(node.original))
     end
 end
 
