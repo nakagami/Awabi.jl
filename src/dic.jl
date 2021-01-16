@@ -340,6 +340,6 @@ function get_matrix(path::AbstractString)::Matrix
     Matrix(mmap, lsize, rsize)
 end
 
-function get_trans_cost(m::Matrix, id1::UInt16, id2::UInt16)::Int16
-    m.mmap[UInt32(id2) * m.lsize + UInt32(id1) + 1]
+function get_trans_cost(m::Matrix, id1::UInt16, id2::UInt16)::Int32
+    Int32(m.mmap[UInt32(id2) * m.lsize + UInt32(id1) + 1])
 end
