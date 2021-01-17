@@ -74,7 +74,7 @@ end
 
 function new_node(e::DicEntry)
     Node(
-        copy(e.original), # entry
+        deepcopy(e.original), # entry
         e.feature,  # feature
         0,          # pos
         0,          # epos
@@ -180,8 +180,8 @@ function add!(lattice::Lattice, node::Node, matrix::Matrix)
     node.pos = lattice.p
     node.epos = lattice.p + node_len(node)
     node.index = length(lattice.snodes[lattice.p+1])
-    push!(lattice.snodes[node.pos+1], node)
-    push!(lattice.enodes[node.epos+1], node)
+    push!(lattice.snodes[node.pos+1], deepcopy(node))
+    push!(lattice.enodes[node.epos+1], deepcopy(node))
 end
 
 function forward(lattice::Lattice)::Int64
