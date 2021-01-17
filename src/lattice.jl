@@ -74,7 +74,7 @@ end
 
 function new_node(e::DicEntry)
     Node(
-        deepcopy(e.original), # entry
+        e.original, # entry
         e.feature,  # feature
         0,          # pos
         0,          # epos
