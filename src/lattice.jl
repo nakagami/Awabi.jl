@@ -230,9 +230,10 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
             push!(paths, reverse(bp.back_path))
             n -= 1
         else
-            new_node = bp.back_path[length(bp.back_path)]
-            epos = new_node.epos - node_len(new_node)
-            for node in lattice.enodes[epos+1]
+            node = bp.back_path[length(bp.back_path)]
+            epos = node.epos - node_len(node)
+            for i in 1:(length(lattice.enodes[epos+1]))
+                node = lattice.enodes[epos+1][i]
                 bp = BackwardPath(node, bp, matrix)
                 enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
             end
