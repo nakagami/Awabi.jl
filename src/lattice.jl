@@ -38,6 +38,35 @@ mutable struct Node
     skip::Bool
 end
 
+function copy(node::Node)::Node
+    original::Union{Vector{UInt8}, Nothing} = nothing
+    if node.original != nothing
+        original = zeros(UInt8, length(node.original))
+        copyto!(original, node.original)
+    end
+
+    feature::Union{Vector{UInt8}, Nothing} = nothing
+    if node.feature != nothing
+        feature = zeros(UInt8, length(node.feature))
+        copyto!(feature, node.feature)
+    end
+
+    Node(
+        original,
+        feature,
+        node.pos,
+        node.epos,
+        node.index,
+        node.left_id,
+        node.right_id,
+        node.cost,
+        node.min_cost,
+        node.back_pos,
+        node.back_index,
+        node.skip
+    )
+end
+
 function new_bos()::Node
     Node(
         nothing,    # original
@@ -46,7 +75,7 @@ function new_bos()::Node
         1,          # epos
         0,          # index
         -1,         # left_id
-        0,          # right_id,
+        0,          # right_id
         0,          # cost
         0,          # min_cost
         -1,         # back_pos
@@ -119,14 +148,16 @@ function dump_node(node::Node)
     println("$(original),$(feature),$(node_len(node)),$(node.pos),$(node.epos),$(node.index),$(node.left_id),$(node.right_id),$(node.cost),$(node.min_cost),$(node.back_pos),$(node.back_index),$(node.skip)")
 end
 
-function dump_nodes(prompt::AbstractString, nodes::Vector{Vector{Node}})
-    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    println(prompt)
-    for node_list in nodes
+function dump_nodes_list(prompt::AbstractString, nodes_list::Vector{Vector{Node}})
+    for nodes in nodes_list
         println("--------------------------------------------------------------------------------------------------------------")
-        for node in node_list
-            dump_node(node)
-        end
+        dump_nodes(nodes)
+    end
+end
+
+function dump_nodes(nodes::Vector{Node})
+    for node in nodes
+        dump_node(copy(node))
     end
 end
 
@@ -221,7 +252,7 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
     @assert is_eos(node)
 
     pq = PriorityQueue{BackwardPath, Int32}(Base.Order.Reverse)
-    bp = BackwardPath(node, nothing, matrix)
+    bp = BackwardPath(copy(node), nothing, matrix)
     enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
 
     while length(pq) > 0 && n > 0
@@ -234,7 +265,7 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
             epos = node.epos - node_len(node)
             for i in 1:(length(lattice.enodes[epos+1]))
                 node = lattice.enodes[epos+1][i]
-                bp = BackwardPath(node, bp, matrix)
+                bp = BackwardPath(copy(node), bp, matrix)
                 enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
             end
         end

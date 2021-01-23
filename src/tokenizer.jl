@@ -98,8 +98,8 @@ function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
     end
     end!(lattice, tokenizer.matrix)
 
-    # dump_nodes("snodes", lattice.snodes)
-    # dump_nodes("enodes", lattice.enodes)
+    # dump_nodes_list("snodes", lattice.snodes)
+    # dump_nodes_list("enodes", lattice.enodes)
 
     lattice
 end
