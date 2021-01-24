@@ -149,6 +149,7 @@ function dump_node(node::Node)
 end
 
 function dump_nodes_list(prompt::AbstractString, nodes_list::Vector{Vector{Node}})
+    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     for nodes in nodes_list
         println("--------------------------------------------------------------------------------------------------------------")
         dump_nodes(nodes)
