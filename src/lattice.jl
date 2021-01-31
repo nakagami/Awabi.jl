@@ -157,6 +157,7 @@ function dump_nodes_list(prompt::AbstractString, nodes_list::Vector{Vector{Node}
 end
 
 function dump_nodes(nodes::Vector{Node})
+    println("--------------------------------------------------------------------------------------------------------------")
     for node in nodes
         dump_node(copy(node))
     end
