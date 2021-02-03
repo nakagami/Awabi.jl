@@ -253,8 +253,8 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
     node = lattice.enodes[epos+1][1]
     @assert is_eos(node)
 
-    pq = PriorityQueue{BackwardPath, Int32}(Base.Order.Reverse)
-    bp = BackwardPath(copy(node), nothing, matrix)
+    pq = PriorityQueue{BackwardPath, Int32}()
+    bp = BackwardPath(matrix, deepcopy(node), nothing)
     enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
 
     while length(pq) > 0 && n > 0
@@ -267,8 +267,8 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
             epos = node.epos - node_len(node)
             for i in 1:(length(lattice.enodes[epos+1]))
                 node = lattice.enodes[epos+1][i]
-                bp = BackwardPath(copy(node), bp, matrix)
-                enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
+                bp2 = BackwardPath(matrix, deepcopy(node), bp)
+                enqueue!(pq, bp2, bp2.cost_from_bos + bp2.cost_from_eos)
             end
         end
     end
@@ -281,22 +281,22 @@ struct BackwardPath
     cost_from_eos::Int32
     back_path::Vector{Node}
 
-    function BackwardPath(node::Node, right_path::Union{BackwardPath, Nothing}, matrix::Matrix)
+    function BackwardPath(matrix::Matrix, node::Node, right_path::Union{BackwardPath, Nothing})
         cost_from_bos = node.min_cost
         cost_from_eos = 0
         back_path::Vector{Node} = []
 
         if right_path != nothing
             neighbor_node = right_path.back_path[length(right_path.back_path)]
-            cost_from_eos = right_path.cost_from_eos + neighbor_node.cost + get_trans_cost(matrix, UInt16(node.right_id), UInt16(node.left_id))
+            cost_from_eos = right_path.cost_from_eos + neighbor_node.cost + get_trans_cost(matrix, UInt16(node.right_id), UInt16(neighbor_node.left_id))
             for node in right_path.back_path
-                push!(back_path, node)
+                push!(back_path, deepcopy(node))
             end
         else
             @assert is_eos(node)
         end
 
-        push!(back_path, node)
+        push!(back_path, deepcopy(node))
 
         new(cost_from_bos, cost_from_eos, back_path)
     end

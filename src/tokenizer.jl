@@ -124,7 +124,7 @@ function tokenize_n_best(tokenizer::Tokenizer, s::AbstractString, n::Int)::Vecto
     lattice = build_lattice(tokenizer, s)
     for nodes in backward_astar(lattice, n, tokenizer.matrix)
         morphemes = []
-        for node in nodes[2:length(nodes)-2]
+        for node in nodes[2:length(nodes)-1]
             push!(morphemes, (String(node.original), String(node.feature)))
         end
         push!(morphemes_list, morphemes)
