@@ -90,7 +90,7 @@ function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
         unk_entries, invoke = lookup_unknowns(tokenizer.unk_dic, s[pos+1:length(s)], tokenizer.char_propery)
         if invoke || !matched
             for e in unk_entries
-                add!(lattice, new_node(e), matrix, tokenizer.matrix)
+                add!(lattice, new_node(e), tokenizer.matrix)
             end
         end
 
