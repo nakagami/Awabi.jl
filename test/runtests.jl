@@ -89,3 +89,10 @@ end
     @test tokenize_n_best(tokenizer, "すもももももももものうち", 3) == results
 end
 
+@testset "tokenize_unk" begin
+    result = [
+            ("アイス", "名詞,一般,*,*,*,*,アイス,アイス,アイス"),
+    ]
+    tokenizer = Tokenizer()
+    @test tokenize(tokenizer, "アイス") == result
+end
