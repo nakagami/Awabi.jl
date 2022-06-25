@@ -125,7 +125,7 @@ function get_group_length(cp::CharProperty, s::Vector{UInt8}, default_type::UInt
         if ((1 << default_type) & char_info.type) != 0
             i += ln
             char_count += 1
-            if char_count > MAX_GROUPING_SIZE
+            if char_count > MAX_GROUPING_SIZE + 1
                 return -1
             end
         else
@@ -175,7 +175,7 @@ function get_unknown_lengths(cp::CharProperty, s::Vector{UInt8})::Tuple{UInt32, 
         end
     end
     if length(ln_list) == 0
-        push!(ln_list, fist_ln)
+        push!(ln_list, first_ln)
     end
     (char_info.default_type, ln_list, char_info.invoke == 1)
 end
@@ -312,7 +312,7 @@ end
 
 function lookup_unknowns(dic::MecabDic, s::Vector{UInt8}, cp::CharProperty)::Tuple{Vector{DicEntry}, Bool}
     default_type, ln_vec, invoke = get_unknown_lengths(cp, s)
-    category_name = cp.category_names[default_type]
+    category_name = cp.category_names[default_type+1]
     result = exact_match_search(dic, category_name)
     results::Vector{DicEntry} = []
     for i in ln_vec
