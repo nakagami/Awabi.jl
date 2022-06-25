@@ -1,7 +1,7 @@
 name = "Awabi"
 uuid = "b89ecf66-93e0-42cf-a85d-3fd691c1774b"
 authors = ["Hajime Nakagami <nakagami@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
