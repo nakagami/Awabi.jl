@@ -195,7 +195,7 @@ function add!(lattice::Lattice, node::Node, matrix::Matrix)
                 cost = enode2.min_cost + get_trans_cost(matrix, UInt16(enode2.right_id), UInt16(node.left_id))
                 if cost < min_cost
                     min_cost = cost
-                    best_node = enode
+                    best_node = enode2
                 end
             end
         else
