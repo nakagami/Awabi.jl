@@ -68,7 +68,7 @@ function build_lattice(tokenizer::Tokenizer, sentence::String)::Lattice
 
         # user_dic
         if tokenizer.user_dic != nothing
-            user_entries = lookup(user_dic, s[(pos+1):length(s)])
+            user_entries = lookup(tokenizer.user_dic, s[(pos+1):length(s)])
             if length(user_entries) > 0
                 for e in user_entries
                     add!(lattice, new_node(e), tokenizer.matrix)
