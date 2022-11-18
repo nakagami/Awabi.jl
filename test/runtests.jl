@@ -96,3 +96,14 @@ end
     tokenizer = Tokenizer()
     @test tokenize(tokenizer, "アイス") == result
 end
+
+@testset "tokenize_userdic" begin
+    result = [
+            ("ユーザー辞書", "名詞,一般,*,*,*,*,ユーザー辞書,ユーザージショ,ユーザージショ"),
+            ("は", "助詞,係助詞,*,*,*,*,は,ハ,ワ"),
+            ("固有名詞", "名詞,一般,*,*,*,*,固有名詞,コユウメイシ,コユーメイシ"),
+            ("です", "助動詞,*,*,*,特殊・デス,基本形,です,デス,デス"),
+    ]
+    tokenizer = Tokenizer()
+    @test tokenize(tokenizer, "ユーザー辞書は固有名詞です") == result
+end
