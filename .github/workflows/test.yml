@@ -18,7 +18,9 @@ jobs:
       - name: Install mecab-ipadic
         run: sudo apt install mecab-ipadic-utf8
       - name: Create userdic
-        run: ./.github/scripts/mk_test_user_dic.sh
+        run: |
+          sudo sh -c 'echo "userdic = /tmp/user.dic\n" >> /etc/mecabrc'
+          ./.github/scripts/mk_test_user_dic.sh
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
