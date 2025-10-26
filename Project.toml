@@ -9,7 +9,7 @@ Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [compat]
 julia = "1.0"
-DataStructures = "0.18"
+DataStructures = "0.19"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
