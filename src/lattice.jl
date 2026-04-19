@@ -255,10 +255,10 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
 
     pq = PriorityQueue{BackwardPath, Int32}()
     bp = BackwardPath(matrix, deepcopy(node), nothing)
-    enqueue!(pq, bp, bp.cost_from_bos + bp.cost_from_eos)
+    push!(pq, bp => (bp.cost_from_bos + bp.cost_from_eos))
 
     while length(pq) > 0 && n > 0
-        bp = dequeue!(pq)
+        bp = popfirst!(pq).first
         if is_complete(bp)
             push!(paths, reverse(bp.back_path))
             n -= 1
@@ -268,7 +268,7 @@ function backward_astar(lattice::Lattice, n::Number, matrix::Matrix)::Vector{Vec
             for i in 1:(length(lattice.enodes[epos+1]))
                 node = lattice.enodes[epos+1][i]
                 bp2 = BackwardPath(matrix, deepcopy(node), bp)
-                enqueue!(pq, bp2, bp2.cost_from_bos + bp2.cost_from_eos)
+                push!(pq, bp2 => (bp2.cost_from_bos + bp2.cost_from_eos))
             end
         end
     end
